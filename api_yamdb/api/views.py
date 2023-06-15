@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -39,7 +40,7 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
 
 class TitleViewSet(viewsets.ModelViewSet):
     # Наверное необходимо будет изменить queryset после реализации оценок
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))#<<<---Изменил queryset
     permission_classes = (IsAunthOrReadOnly | IsSuperOrIsAdminOnly, )
     serializer_class = TitleReadOnlySerializer
     filter_backends = (DjangoFilterBackend, )
