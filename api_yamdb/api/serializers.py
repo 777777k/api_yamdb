@@ -50,3 +50,15 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
             'genre',
             'category'
         )
+
+
+class SignupConfirmationCode(serializers.Serializer):
+    """Сериализатор для функции отправки confirmation_code."""
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=254)
+
+
+class GetJWTUser(serializers.Serializer):
+    """Сериализатор для функции отправки токена пользователю."""
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()

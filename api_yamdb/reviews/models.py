@@ -1,6 +1,9 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from . validators import validate_year
+
+User = get_user_model()  # временная модель для проверки
 
 
 class Category(models.Model):
