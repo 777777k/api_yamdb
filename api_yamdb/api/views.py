@@ -53,16 +53,21 @@ class TitleViewSet(viewsets.ModelViewSet):
 def signup_confirmation_code(request):
     serializer = SignupConfirmationCode(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data['username']
-    )
+    #  Скорее всего добавление пользователя в базу можно сделать по-другому
+    #  Напишите, если есть предложения по оптимизации
+    username = request.data.get('username').lower()
+    email = request.data.get('email').lower()
+    try:
+        user = User.objects.get(username=username)
+    except Exception:
+        user = User.objects.create(username=username, email=email)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject='Код подтверждения на Yamdb',
-        message=f'Ваш код подтверждения: {confirmation_code}',
+        message=(f'Привет, {username.title()}!\n'
+                 f'Ваш код подтверждения: {confirmation_code}'),
         from_email='yamdb@yamdb.ru',
-        recipient_list=[user.email],
+        recipient_list=[email],
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
