@@ -1,14 +1,11 @@
 from django.contrib.auth import get_user_model #<<<---Убрать после добавления модели User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.contrib.auth import get_user_model
 
 from . validators import validate_year
 
 User = get_user_model()  # временная модель для проверки
 
-
-User = get_user_model()#<<<---Убрать после добавления модели User
 LENGTH_TEXT:int = 15
 
 
