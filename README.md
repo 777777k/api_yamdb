@@ -27,3 +27,15 @@ pip install -r requirements.txt
 ```
 python manage.py migrate
 ```
+
+Для добавления записей в бд введите в терминале команду:
+
+```
+python manage.py import_data
+```
+
+Запустить проект:
+
+```
+python manage.py runserver
+```
