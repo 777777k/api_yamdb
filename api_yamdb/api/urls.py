@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from . views import (
     CategoryViewSet,
-    CommentViewSet, 
+    CommentViewSet,
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,

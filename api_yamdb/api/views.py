@@ -7,7 +7,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Category, Genre, Review, Title, User
@@ -20,8 +19,8 @@ from .serializers import (CategorySerializer,
                           CommentSerializer,
                           GenreSerializer,
                           TitleReadOnlySerializer,
-                          SignupConfirmationCode,
-                          GetJWTUser,
+                          ConfirmationCodeSerializer,
+                          GetJWTSerializer,
                           ReviewSerializer
                           )
 
@@ -47,8 +46,7 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    # Наверное необходимо будет изменить queryset после реализации оценок
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))#<<<---Изменил queryset
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     permission_classes = (IsAunthOrReadOnly | IsSuperOrIsAdminOnly, )
     serializer_class = TitleReadOnlySerializer
     filter_backends = (DjangoFilterBackend, )
@@ -58,10 +56,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def signup_confirmation_code(request):
-    serializer = SignupConfirmationCode(data=request.data)
+    serializer = ConfirmationCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    #  Скорее всего добавление пользователя в базу можно сделать по-другому
-    #  Напишите, если есть предложения по оптимизации
     username = request.data.get('username').lower()
     email = request.data.get('email').lower()
     try:
@@ -82,7 +78,7 @@ def signup_confirmation_code(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def get_jwt_user(request):
-    serializer = GetJWTUser(data=request.data)
+    serializer = GetJWTSerializer(data=request.data)
     if serializer.is_valid():
         user = get_object_or_404(
             User,
@@ -101,13 +97,12 @@ def get_jwt_user(request):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для обьектов модели Review."""
     permission_classes = (
-        IsAunthOrReadOnly, IsSuperIsAdminIsModeratorIsAuthorOnly, 
+        IsAunthOrReadOnly, IsSuperIsAdminIsModeratorIsAuthorOnly,
     )
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     filter_backends = (filters.OrderingFilter,)
     ordering = ('id',)
-
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
