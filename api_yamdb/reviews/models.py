@@ -2,25 +2,25 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import validate_year, validate_username
+from .validators import validate_year
+from api_yamdb.settings import AUTH_USER_MODEL
 
 
 LENGTH_TEXT: int = 15
 
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+
+ROLE_CHOICES = [
+    (USER, USER),
+    (ADMIN, ADMIN),
+    (MODERATOR, MODERATOR),
+]
+
 
 class User(AbstractUser):
-    USER = 'user'
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-
-    ROLE_CHOICES = [
-        (USER, USER),
-        (ADMIN, ADMIN),
-        (MODERATOR, MODERATOR),
-    ]
-
     username = models.CharField(
-        validators=(validate_username,),
         max_length=150,
         unique=True,
         blank=False,
@@ -62,15 +62,15 @@ class User(AbstractUser):
 
     @property
     def is_user(self):
-        return self.role == self.USER
+        return self.role == USER
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN or self.is_superuser
+        return self.role == ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
+        return self.role == MODERATOR
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -155,7 +155,7 @@ class Review(models.Model):
         verbose_name='Текст'
     )
     author = models.ForeignKey(
-        User,
+        AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Aвтор'
@@ -198,7 +198,7 @@ class Comment(models.Model):
         verbose_name='Текст'
     )
     author = models.ForeignKey(
-        User,
+        AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Aвтор'
