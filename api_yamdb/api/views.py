@@ -28,12 +28,40 @@ from .serializers import (CategorySerializer,
                           )
 
 
+class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обьектов модели User."""
+    queryset = User.objects.all()
+    serializer_class = AdminSerializer
+    permission_classes = (IsSuperOrIsAdminOnly,)
+    pagination_class = UsersPagination
+    filter_backends = (filters.SearchFilter,)
+    lookup_field = 'username'
+    search_fields = ('username',)
+    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
+
+    @action(
+        detail=False, methods=['get', 'patch', 'post'],
+        url_path='me', url_name='me',
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def my_profile(self, request):
+        serializer = UsersSerializer(request.user)
+        if request.method == 'PATCH':
+            serializer = UsersSerializer(
+                request.user, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class CategoryViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
                       mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAunthOrReadOnly, )
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    permission_classes = (IsAunthOrReadOnly,)
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     lookup_field = 'slug'
 
@@ -42,8 +70,8 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
                    mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAunthOrReadOnly, )
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    permission_classes = (IsAunthOrReadOnly,)
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     lookup_field = 'slug'
 
@@ -102,41 +130,13 @@ def get_jwt_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обьектов модели User."""
-    queryset = User.objects.all()
-    serializer_class = AdminSerializer
-    permission_classes = (IsSuperOrIsAdminOnly,)
-    pagination_class = UsersPagination
-    filter_backends = (filters.SearchFilter,)
-    lookup_field = 'username'
-    search_fields = ('username',)
-    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
-
-    @action(
-        detail=False, methods=['get', 'patch', 'post'],
-        url_path='me', url_name='me',
-        permission_classes=(permissions.IsAuthenticated,)
-    )
-    def my_profile(self, request):
-        serializer = UsersSerializer(request.user)
-        if request.method == 'PATCH':
-            serializer = UsersSerializer(
-                request.user, data=request.data, partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для обьектов модели Review."""
     permission_classes = (
         IsAunthOrReadOnly, IsSuperIsAdminIsModeratorIsAuthorOnly,
     )
     serializer_class = ReviewSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = UsersPagination
     filter_backends = (filters.OrderingFilter,)
     ordering = ('id',)
 
@@ -155,7 +155,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (
         IsAunthOrReadOnly, IsSuperIsAdminIsModeratorIsAuthorOnly
     )
-    pagination_class = PageNumberPagination
+    pagination_class = UsersPagination
     filter_backends = (filters.OrderingFilter,)
     ordering = ('id',)
 

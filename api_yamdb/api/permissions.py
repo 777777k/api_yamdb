@@ -5,7 +5,9 @@ class IsAunthOrReadOnly(permissions.BasePermission):
     """Доступ анонимным пользователям только к SAFE запросам."""
 
     def has_permission(self, request, view):
-        return request.method in permissions.SAFE_METHODS
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_admin if request.user.is_authenticated else False
 
 
 class IsSuperOrIsAdminOnly(permissions.BasePermission):
