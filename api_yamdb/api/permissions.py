@@ -1,44 +1,37 @@
 from rest_framework import permissions
 
 
-class IsAunthOrReadOnly(permissions.BasePermission):
-    """Доступ анонимным пользователям только к SAFE запросам."""
+class AdminOnly(permissions.BasePermission):#--->>> IsAunthOrReadOnly
+    def has_permission(self, request, view):
+        return (
+            request.user.is_admin
+            or request.user.is_staff
+        )
 
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.user.is_admin
+            or request.user.is_staff
+        )
+
+
+class IsAdminUserOrReadOnly(permissions.BasePermission):#--->>> IsSuperOrIsAdminOnly
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_admin if request.user.is_authenticated else False
 
-
-class IsSuperOrIsAdminOnly(permissions.BasePermission):
-    """Доступ суперюзерам или админам к любым запросам."""
-
+class AdminModeratorAuthorPermission(permissions.BasePermission):#--->>> IsSuperIsAdminIsModeratorIsAuthorOnly
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated
-            and (
-                request.user.is_superuser
-                or request.user.is_staff
-                or request.user.is_admin
-            )
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
         )
-
-
-class IsSuperIsAdminIsModeratorIsAuthorOnly(permissions.BasePermission):
-    """
-    Доступ анонимным пользователям только к SAFE запросам.
-    Админам, суперюзерам, модераторам и авторам доступны любые запросы.
-    """
 
     def has_object_permission(self, request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS
-            or request.user.is_authenticated
-            and (
-                request.user.is_superuser
-                or request.user.is_staff
-                or request.user.is_admin
-                or request.user.is_moderator
-                or request.user == obj.author
-            )
+            or obj.author == request.user
+            or request.user.is_moderator
+            or request.user.is_admin
         )

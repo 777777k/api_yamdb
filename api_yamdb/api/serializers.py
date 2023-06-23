@@ -32,7 +32,9 @@ class TitleSAFESerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
 
     class Meta:
         model = Title
@@ -41,21 +43,21 @@ class TitleSAFESerializer(serializers.ModelSerializer):
 
 class TitleReadOnlySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title при NOT SAFE запросах."""
-    rating = serializers.IntegerField(
-        source='reviews__score__avg', read_only=True
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug', required=True
     )
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True,
+        required=True,
+    )
+    description = serializers.CharField(required=False)
 
     class Meta:
         model = Title
-        fields = (
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category'
-        )
+        fields = '__all__'
+    #    read_only_fields = ('rating',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
