@@ -3,10 +3,8 @@ import re
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from reviews.models import (
-    ROLE_CHOICES, Category, Comment,
-    Genre, Title, Review, User
-)
+from reviews.models import (ROLE_CHOICES, Category, Comment, Genre, Review,
+                            Title, User)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -53,11 +51,13 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
         required=True,
     )
     description = serializers.CharField(required=False)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
-    #    read_only_fields = ('rating',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -108,10 +108,10 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
     def validate_username(self, username):
         if username.lower() == 'me':
             raise ValidationError(
-                {"message": "Имя пользователя не может быть <me>."})
+                {'message': 'Имя пользователя не может быть <me>.'})
         if re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$', username) is None:
             raise ValidationError(
-                {"message": "Недопустимые символы в username."})
+                {'message': 'Недопустимые символы в username.'})
         return username
 
     def validate(self, data):
@@ -119,7 +119,7 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
             user = User.objects.get(username=data['username'])
             if user.email == data['email']:
                 return data
-            raise ValidationError({"message": "Неверный email"})
+            raise ValidationError({'message': 'Неверный email'})
         return data
 
 
@@ -157,5 +157,5 @@ class AdminSerializer(serializers.ModelSerializer):
     def validate_username(self, username):
         if re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$', username) is None:
             raise ValidationError(
-                {"message": "Недопустимые символы в username."})
+                {'message': 'Недопустимые символы в username.'})
         return username

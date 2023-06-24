@@ -1,27 +1,23 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, viewsets, status, permissions
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import Category, Genre, Review, Title, User
-from .pagination import UsersPagination
 from .filters import TitleFilter
+from .pagination import UsersPagination
 from .permissions import (AdminModeratorAuthorPermission, AdminOnly,
                           IsAdminUserOrReadOnly)
-from .serializers import (CategorySerializer,
-                          CommentSerializer,
-                          GenreSerializer,
-                          TitleReadOnlySerializer,
-                          ConfirmationCodeSerializer,
-                          GetJWTSerializer,
-                          ReviewSerializer,
-                          UsersSerializer,
-                          AdminSerializer
-                          )
+from .serializers import (AdminSerializer, CategorySerializer,
+                          CommentSerializer, ConfirmationCodeSerializer,
+                          GenreSerializer, GetJWTSerializer, ReviewSerializer,
+                          TitleReadOnlySerializer, TitleSAFESerializer,
+                          UsersSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -74,10 +70,18 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(Avg('reviews__score'))
-    permission_classes = (IsAdminUserOrReadOnly,)
-    serializer_class = TitleReadOnlySerializer
+    permission_classes = (IsAdminUserOrReadOnly, )
+    # serializer_class = TitleReadOnlySerializer
     filter_backends = (DjangoFilterBackend, )
     filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleSAFESerializer
+        return TitleReadOnlySerializer
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 @api_view(['POST'])

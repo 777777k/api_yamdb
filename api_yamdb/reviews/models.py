@@ -3,8 +3,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import validate_year
-from api_yamdb.settings import AUTH_USER_MODEL
-
 
 LENGTH_TEXT: int = 15
 
@@ -126,22 +124,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-
-'''class GenreTitle(models.Model):
-    title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, verbose_name='Произведение'
-    )
-    genre = models.ForeignKey(
-        Genre, on_delete=models.CASCADE, verbose_name='Жанр'
-    )
-
-    class Meta:
-        verbose_name = 'Жанры произведения'
-        verbose_name_plural = 'Жанры произведений'
-
-    def __str__(self):
-        return f'{self.title} принадлежит жанру {self.genre}'''
 
 
 class Review(models.Model):
