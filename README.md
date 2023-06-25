@@ -39,3 +39,10 @@ python manage.py import_data
 ```
 python manage.py runserver
 ```
+
+```
+Авторы:
+Eliseev-Sergey - https://github.com/Eliseev-Sergey
+Arkaddddy - https://github.com/Arkaddddy
+777777k - https://github.com/777777k
+```

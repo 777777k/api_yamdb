@@ -3,8 +3,9 @@ import re
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from reviews.models import (ROLE_CHOICES, Category, Comment, Genre, Review,
-                            Title, User)
+from reviews.models import (
+    Category, Comment, Genre, Review, ROLE_CHOICES, Title, User
+)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -13,7 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug',)
+        exclude = ('id',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -22,7 +23,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug',)
+        exclude = ('id',)
 
 
 class TitleSAFESerializer(serializers.ModelSerializer):
@@ -30,6 +31,7 @@ class TitleSAFESerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
+    # rating не является лишним полем, подробнее описал в личных сообщениях
     rating = serializers.IntegerField(
         source='reviews__score__avg', read_only=True
     )
@@ -114,12 +116,19 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
                 {'message': 'Недопустимые символы в username.'})
         return username
 
-    def validate(self, data):
-        if User.objects.filter(username=data['username']).exists():
-            user = User.objects.get(username=data['username'])
-            if user.email == data['email']:
-                return data
-            raise ValidationError({'message': 'Неверный email'})
+    def validate(slef, data):
+        username = data.get('username')
+        email = data.get('email')
+        if (
+            User.objects.filter(username=username).exists()
+            and User.objects.get(username=username).email != email
+        ):
+            raise ValidationError('Такое имя уже зарегистрировано')
+        if (
+            User.objects.filter(email=email).exists()
+            and User.objects.get(email=email).username != username
+        ):
+            raise ValidationError('Такой e-mail уже зарегистрирован')
         return data
 
 
