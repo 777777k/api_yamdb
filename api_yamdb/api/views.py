@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -13,6 +13,7 @@ from rest_framework import serializers
 
 from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitleFilter
+from .mixins import ListCreateDestroyViewSet
 from .pagination import UsersPagination
 from .permissions import (AdminModeratorAuthorPermission,
                           AdminOnly, IsAdminUserOrReadOnly)
@@ -21,15 +22,6 @@ from .serializers import (AdminSerializer, CategorySerializer,
                           GenreSerializer, GetJWTSerializer,
                           ReviewSerializer, TitleReadOnlySerializer,
                           TitleSAFESerializer, UsersSerializer)
-
-
-class ListCreateDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -63,19 +55,11 @@ class UserViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
